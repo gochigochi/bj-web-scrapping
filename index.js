@@ -35,8 +35,8 @@ const login = async () => {
 
     const newPage = await newWindowTarget.page()
     await newPage.waitForSelector("#btnEntrar button")
-    await newPage.type("input[id='email']", process.env.EMAIL, { delay: 50 })
-    await newPage.type("input[id='password']", process.env.PSW, { delay: 50 })
+    await newPage.type("input[id='email']", "djjporetti@gmail.com", { delay: 50 })
+    await newPage.type("input[id='password']", "BeLe@BoCa@18", { delay: 50 })
     await newPage.click("#btnEntrar button")
 
     const loggedTarget = await browser.waitForTarget(
