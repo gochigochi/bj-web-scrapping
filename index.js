@@ -12,7 +12,8 @@ const login = async () => {
         if (interceptedRequest.isInterceptResolutionHandled()) return;
         if (
             interceptedRequest.url().endsWith('.png') ||
-            // interceptedRequest.url().endsWith('.svg') ||
+            // interceptedRequest.url().endsWith('.svg') ||git push
+            
             interceptedRequest.url().endsWith('.jpg') ||
             ['font'].indexOf(interceptedRequest.resourceType()) !== -1
         )
@@ -53,54 +54,74 @@ const login = async () => {
     await loggedPage.waitForSelector("#btnPlatea")
     await loggedPage.click("#btnPlatea")
 
-    //LOOP QUE SE ROMPE CUANDO ENCUENTRA EL ASIENTO
+    // LOOP QUE SE ROMPE CUANDO EFECTIVAMENTE RESERVA LA ENTRADA
     while (true) {
 
-        console.log("Empezando a buscar...")
-
-        //LOOP QUE SE ROMPE CUANDO ENCUENTRA LA UBICACION
+        //LOOP QUE SE ROMPE CUANDO ENCUENTRA EL ASIENTO
         while (true) {
-
+    
+            console.log("Empezando a buscar...")
+    
+            //LOOP QUE SE ROMPE CUANDO ENCUENTRA LA UBICACION
+            while (true) {
+    
+                try {
+    
+                    await loggedPage.waitForSelector(".enabled", { timeout: 500 })
+                    await loggedPage.click(".enabled")
+                    console.log("Entrada encontrada.")
+                    break
+    
+                } catch (error) {
+    
+                    console.log("No hay entradas todavía. Recargando pagina.")
+                    await loggedPage.reload({ waitUntil: "domcontentloaded" })
+                }
+            }
+    
+            console.log("Reservar asiento")
+    
             try {
-
-                await loggedPage.waitForSelector(".enabled", { timeout: 500 })
-                await loggedPage.click(".enabled")
-                console.log("Entrada encontrada.")
+    
+                await loggedPage.waitForSelector(".d", { timeout: 5000 })
+                // await loggedPage.waitForSelector(".d")
+                await loggedPage.click(".d")
+                console.log("Asiento clickeado, ahora clickear Boton Reservar")
+                // await loggedPage.waitForSelector(".but_medium2", { timeout: 0 }) // TESTING FOR NOT REGULAR EVENT
+                await loggedPage.waitForSelector("#btnReservar", { timeout: 0 }) // FOR PRODUCTION
+                // WAIT UNTIL THE LOADER IS HIDDEN (ELSE, PUPPET WILL CLICK ON THE SECREEN AND ABORT THE LOADING AND RESET THE LOOP)
+                await new Promise(response => setTimeout(response, 3000))
+                await loggedPage.click("#btnReservar") // FOR PRODUCTION
+                // await loggedPage.click(".but_medium2") // TESTING FOR NOT REGULAR EVENT
+                console.log("Boton reservar clickeado")
                 break
-
-            } catch (error) {
-
-                console.log("No hay entradas todavía. Recargando pagina.")
-                await loggedPage.reload({ waitUntil: "domcontentloaded" })
+    
+            } catch (err) {
+    
+                console.log("El asiento ya fue reservado por otro usuario. Buscando nuevamente...")
+                console.log("Error: ", err)
+                await loggedPage.goBack({ waitUntil: "domcontentloaded" })
             }
         }
 
-        console.log("Reservar asiento")
-
         try {
+ 
+            const locationTaken = await loggedPage.waitForSelector(".isa_info", { timeout: 1000 })
 
-            await loggedPage.waitForSelector(".d", { timeout: 5000 })
-            // await loggedPage.waitForSelector(".d")
-            await loggedPage.click(".d")
-            console.log("Asiento clickeado, ahora clickear Boton Reservar")
-            // await loggedPage.waitForSelector(".but_medium2", { timeout: 0 }) // TESTING FOR NOT REGULAR EVENT
-            await loggedPage.waitForSelector("#btnReservar", { timeout: 0 }) // FOR PRODUCTION
-            // WAIT UNTIL THE LOADER IS HIDDEN (ELSE, PUPPET WILL CLICK ON THE SECREEN AND ABORT THE LOADING AND RESET THE LOOP)
-            await new Promise(response => setTimeout(response, 3000))
-            await loggedPage.click("#btnReservar") // FOR PRODUCTION
-            // await loggedPage.click(".but_medium2") // TESTING FOR NOT REGULAR EVENT
-            console.log("Boton reservar clickeado")
-            break
+            if (locationTaken) {
+                console.log("clickear ese boton")
+                break
+            }
 
         } catch (err) {
 
-            console.log("El asiento ya fue reservado por otro usuario. Buscando nuevamente...")
-            console.log("Error: ", err)
-            await loggedPage.goBack({ waitUntil: "domcontentloaded" })
+            console.log("La entrada esta disponible.")
+            break
         }
     }
 
-    console.log("Entrada para reservar.")
+
+    console.log("Reservar entrada.")
     // browser?.close()
 }
 
